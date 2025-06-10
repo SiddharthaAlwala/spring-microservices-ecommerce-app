@@ -15,7 +15,7 @@ public class InventoryServiceApplication {
 		SpringApplication.run(InventoryServiceApplication.class, args);
 	}
 
-	// By creating the bean we can load the data at the time application is ging to start from the spring framework.
+	// By creating the bean we can load the data at the time application is going to start from the spring framework.
 	@Bean
 	public CommandLineRunner loadData(InventoryService inventoryService, InventoryRepository inventoryRepository) {
 		return args -> {
