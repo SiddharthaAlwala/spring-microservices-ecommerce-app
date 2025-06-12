@@ -23,7 +23,7 @@ import java.util.UUID;
 public class OrderService {
 
     private final OrderRepository orderRepository;
-    private final WebClient webClient;
+    private final WebClient.Builder webClientBuilder;
     public void placeOrder(OrderRequest orderRequest) {
         Order order = new Order();
         order.setOrderNumber(UUID.randomUUID().toString());
@@ -37,28 +37,32 @@ public class OrderService {
         List<String> skuCodes= order.getOrderLineItemsList().stream().map(OrderLineItems::getSkuCode)
                 .toList();
 
+        System.out.println("🧪 Calling inventory-service via Eureka...");
+        System.out.println("WebClient builder class: " + webClientBuilder.getClass().getName());
+
         // Call Inventory service, and place order if product is in.
         // By default webClient will make asynchronous request.
-//        InventoryResponse[] inventoryResponseArray  = webClient.get()
-//                .uri("http://localhost:8082/api/inventory",
-//                        uriBuilder -> uriBuilder.queryParam("skuCodes", skuCodes.toArray()).build()
-//                        )
-//                        .retrieve()
-//                                .bodyToMono(InventoryResponse[].class)
-//                                        .block();
+        InventoryResponse[] inventoryResponseArray  = webClientBuilder.build().get()
+                .uri("http://inventory-service/api/inventory",
+                        uriBuilder -> uriBuilder.queryParam("skuCodes", skuCodes.toArray()).build()
+                        )
+                        .retrieve()
+                        .bodyToMono(InventoryResponse[].class)
+                        .block();
 
-        URI uri = UriComponentsBuilder.fromHttpUrl("http://localhost:8082/api/inventory")
-                .queryParam("skuCodes", skuCodes)
-                .build()
-                .toUri();
+//        URI uri = UriComponentsBuilder.fromHttpUrl("http://inventory-service/api/inventory")
+//                .queryParam("skuCodes", skuCodes)
+//                .build()
+//                .toUri();
 
-        System.out.println("CALLING: " + uri);  // Debug log
 
-        InventoryResponse[] inventoryResponseArray = webClient.get()
-                .uri(uri)
-                .retrieve()
-                .bodyToMono(InventoryResponse[].class)
-                .block();
+//        System.out.println("CALLING: " + uri);  // Debug log
+
+//        InventoryResponse[] inventoryResponseArray = webClientBuilder.build().get()
+//                .uri(uri)
+//                .retrieve()
+//                .bodyToMono(InventoryResponse[].class)
+//                .block();
 
         boolean allProductsInStock = Arrays.stream(inventoryResponseArray).allMatch(InventoryResponse::isInStock);
 
